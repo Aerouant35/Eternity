@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
-
+#include <limits>
 #include "CoreMinimal.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/Character.h"
@@ -57,19 +57,17 @@ class AEternityCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
 	float DeltaDodge = 8000;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
+	float DodgeCooldown = 0.5f;
+	
 	FTimerHandle DodgeTimerHandle;
-	FTimerHandle DodgeCooldownTimerHandle;
 
 public:
 	AEternityCharacter();
 
 protected:
-	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	// void Look(const FInputActionValue& Value);
-
+	
 	void Dodge(const FInputActionValue& Value);
 
 	void Melee(const FInputActionValue& Value);

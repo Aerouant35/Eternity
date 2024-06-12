@@ -1,12 +1,10 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "EternityCharacter.h"
-#include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
@@ -30,26 +28,9 @@ AEternityCharacter::AEternityCharacter()
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
-	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
+	GetCharacterMovement()->MaxWalkSpeed = 5000.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-
-	// Create a camera boom (pulls in towards the player if there is a collision)
-	// CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	// CameraBoom->SetupAttachment(RootComponent);
-	// CameraBoom->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when character does
-	// CameraBoom->TargetArmLength = 80000.0f; // The camera follows at this distance behind the character
-	// CameraBoom->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
-	// CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
-
-	// Create a follow camera
-	// Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	// Camera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	// Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	// Camera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
-
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
 void AEternityCharacter::BeginPlay()
@@ -57,7 +38,7 @@ void AEternityCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 1500.f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, std::numeric_limits<float>::max(), 0.0f); // ...at this rotation rate
 
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
@@ -73,6 +54,8 @@ void AEternityCharacter::BeginPlay()
 void AEternityCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	//DodgeCooldownTimerHandle -= DeltaSeconds;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,22 +66,13 @@ void AEternityCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		//Jumping
-		// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		// EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AEternityCharacter::Move);
 		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &AEternityCharacter::Dodge);
 
 		//Action
 		EnhancedInputComponent->BindAction(MeleeAction, ETriggerEvent::Triggered, this, &AEternityCharacter::Melee);
-		//EnhancedInputComponent->BindAction(RangedAction, ETriggerEvent::Started, this, &AEternityCharacter::RangedStart);
-		// EnhancedInputComponent->BindAction(RangedAction, ETriggerEvent::Completed, this, &AEternityCharacter::RangedEnd);
 		EnhancedInputComponent->BindAction(PowerAction, ETriggerEvent::Triggered, this, &AEternityCharacter::Power);
-
-		//Looking
-		//EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AEternityCharacter::Look);
 	}
 }
 
@@ -125,28 +99,16 @@ void AEternityCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-// void AEternityCharacter::Look(const FInputActionValue& Value)
-// {
-	// return;
-
-	// // input is a Vector2D
-	// FVector2D LookAxisVector = Value.Get<FVector2D>();
-
-	// if (Controller != nullptr)
-	// {
-		// // add yaw and pitch input to controller
-		// // AddControllerYawInput(LookAxisVector.X);
-		// // AddControllerPitchInput(LookAxisVector.Y);
-	// }
-// }
-
 void AEternityCharacter::Dodge(const FInputActionValue& Value)
 {
-	// BlockInput(true);
+	if (GetWorldTimerManager().GetTimerElapsed(DodgeTimerHandle) > 0.f) return;
+
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Dodge"));
 
-	GetCharacterMovement()->Velocity = FVector(GetActorForwardVector().X * DeltaDodge, GetActorForwardVector().Y * DeltaDodge, 0);
-	// GetWorldTimerManager().SetTimer(DodgeTimerHandle, this, AEternityCharacter::BlockInput, 1.f, false, 0);
+	GetWorldTimerManager().SetTimer(DodgeTimerHandle, DodgeCooldown, false);
+
+	FVector DodgeDirection = FVector(GetActorForwardVector().X * DeltaDodge, GetActorForwardVector().Y * DeltaDodge, 0);
+	LaunchCharacter(DodgeDirection, false, false);
 }
 
 void AEternityCharacter::Melee(const FInputActionValue& Value)
