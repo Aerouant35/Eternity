@@ -54,8 +54,6 @@ void AEternityCharacter::BeginPlay()
 void AEternityCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	//DodgeCooldownTimerHandle -= DeltaSeconds;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,6 +70,8 @@ void AEternityCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 
 		//Action
 		EnhancedInputComponent->BindAction(MeleeAction, ETriggerEvent::Triggered, this, &AEternityCharacter::Melee);
+		EnhancedInputComponent->BindAction(RangedAction, ETriggerEvent::Started, this, &AEternityCharacter::RangedStart);
+		EnhancedInputComponent->BindAction(RangedAction, ETriggerEvent::Completed, this, &AEternityCharacter::RangedEnd);
 		EnhancedInputComponent->BindAction(PowerAction, ETriggerEvent::Triggered, this, &AEternityCharacter::Power);
 	}
 }
@@ -83,6 +83,8 @@ void AEternityCharacter::Move(const FInputActionValue& Value)
 
 	if (Controller != nullptr)
 	{
+		if (bShouldMove) return;
+		
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -101,7 +103,7 @@ void AEternityCharacter::Move(const FInputActionValue& Value)
 
 void AEternityCharacter::Dodge(const FInputActionValue& Value)
 {
-	if (GetWorldTimerManager().GetTimerElapsed(DodgeTimerHandle) > 0.f) return;
+	if (GetWorldTimerManager().GetTimerElapsed(DodgeTimerHandle) > 0.f || bShouldMove) return;
 
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Dodge"));
 
@@ -118,12 +120,21 @@ void AEternityCharacter::Melee(const FInputActionValue& Value)
 
 void AEternityCharacter::RangedStart(const FInputActionValue& Value)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, TEXT("RangedStart"));
+
+	bIsShoot = true;
+	bShouldMove = true;
+	
 	if (RangedWeapon == nullptr) return;
 	RangedWeapon->StartShoot();
 }
 
 void AEternityCharacter::RangedEnd(const FInputActionValue& Value)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("RangedEnd"));
+
+	bIsShoot = false;
+	
 	if (RangedWeapon == nullptr) return;
 	RangedWeapon->EndShoot();
 }

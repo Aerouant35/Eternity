@@ -60,6 +60,12 @@ class AEternityCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
 	float DodgeCooldown = 0.5f;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
+	bool bIsShoot;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
+	bool bShouldMove;
+	
 	FTimerHandle DodgeTimerHandle;
 
 public:
