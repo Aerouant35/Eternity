@@ -24,6 +24,7 @@ class AEternityCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* Camera;
 
+#pragma region Input
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputMappingContext* DefaultMappingContext;
@@ -47,13 +48,17 @@ class AEternityCharacter : public ACharacter
 	/** Power Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* PowerAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon, meta=(AllowPrivateAccess = "true"))
-	AMeleeWeapon* MeleeWeapon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon, meta=(AllowPrivateAccess = "true"))
-	ARangedWeapon* RangedWeapon;
+	/** AimMouse Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AimMouseAction;
 
+	/** AimGamepad Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AimGamepadAction;
+#pragma endregion 
+
+#pragma region PlayerParam
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
 	float DeltaDodge = 8000;
 	
@@ -65,13 +70,49 @@ class AEternityCharacter : public ACharacter
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
 	bool bShouldMove;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
+	TArray<AActor*> ChildActors;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
+	TSubclassOf<AActor> EnemyClass;
+#pragma endregion 
+
+#pragma region AimAssistParam
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AimAssistParameter, meta=(AllowPrivateAccess = "true"))
+	float DeltaStartBox = 70.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AimAssistParameter, meta=(AllowPrivateAccess = "true"))
+	float DeltaEndBox = 1000.f; // Need to be the end of the range of the ranged weapon
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AimAssistParameter, meta=(AllowPrivateAccess = "true"))
+	FVector BoxSize = FVector(0, 100, 100);
+#pragma endregion
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon, meta=(AllowPrivateAccess = "true"))
+	AMeleeWeapon* MeleeWeapon;
+
+	UPROPERTY(BlueprintReadOnly, Category = Weapon, meta=(AllowPrivateAccess = "true"))
+	ARangedWeapon* RangedWeapon;
+
+	UPROPERTY()
+	APlayerController* PlayerController;
 	
 	FTimerHandle DodgeTimerHandle;
 
 public:
 	AEternityCharacter();
 
+	UPROPERTY(BlueprintReadOnly, Category = Weapon)
+	AActor* ClosestEnemy = nullptr;
+
 protected:
+	void AimAssist();
+	
+	void AimMouse(const FInputActionValue& Value);
+	
+	void AimGamepad(const FInputActionValue& Value);
+	
 	void Move(const FInputActionValue& Value);
 	
 	void Dodge(const FInputActionValue& Value);
@@ -79,10 +120,13 @@ protected:
 	void Melee(const FInputActionValue& Value);
 
 	void RangedStart(const FInputActionValue& Value);
+	
 	void RangedEnd(const FInputActionValue& Value);
 
 	void Power(const FInputActionValue& Value);
 
+	FVector2D GetMousePosition() const;
+	
 protected:
 	virtual void PossessedBy(AController* NewController) override;
 
@@ -90,7 +134,7 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// To add mapping context
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaSeconds) override;
 

@@ -32,6 +32,16 @@ void ARangedWeapon::Tick(float DeltaTime)
 		CurrentTimeRanged += DeltaTime;
 }
 
+void ARangedWeapon::Shoot(AActor* Enemy)
+{
+	USceneComponent* Muzzle = FindComponentByClass<USceneComponent>();
+	ABullet* Bullet = GetWorld()->SpawnActor<ABullet>(BulletClass, Muzzle->GetComponentTransform());
+	Bullet->Init(Enemy); 
+
+	if (Bullet) GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Acteur spawn"));
+	else GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("Acteur pas spawn"));
+}
+
 void ARangedWeapon::StartShoot()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, TEXT("RangedStart"));

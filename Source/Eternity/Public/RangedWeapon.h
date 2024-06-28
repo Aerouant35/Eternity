@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Bullet.h"
 #include "GameFramework/Actor.h"
 #include "RangedWeapon.generated.h"
 
@@ -29,9 +30,12 @@ class ETERNITY_API ARangedWeapon : public AActor
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Property, meta=(AllowPrivateAccess = "true"))
 	float Range;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Property, meta=(AllowPrivateAccess = "true"))
+	TSubclassOf<ABullet> BulletClass;
+	
 	float CurrentTimeRanged;
 	bool bIsHolding;
-	
+
 public:	
 	// Sets default values for this actor's properties
 	ARangedWeapon();
@@ -44,6 +48,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
+	void Shoot(AActor* Enemy);
+	
 	void StartShoot();
 
 	void EndShoot();
