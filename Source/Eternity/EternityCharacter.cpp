@@ -209,8 +209,9 @@ void AEternityCharacter::Melee(const FInputActionValue& Value)
 
 void AEternityCharacter::RangedStart(const FInputActionValue& Value)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, TEXT("RangedStart"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Emerald, TEXT("RangedStart"));
 	bIsShoot = true;
+	RangedWeapon->StartShoot();
 }
 
 void AEternityCharacter::RangedEnd(const FInputActionValue& Value)

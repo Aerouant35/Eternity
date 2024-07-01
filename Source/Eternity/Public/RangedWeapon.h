@@ -11,30 +11,27 @@ UCLASS()
 class ETERNITY_API ARangedWeapon : public AActor
 {
 	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Damage, meta=(AllowPrivateAccess = "true"))
-	float MinDamage;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Damage, meta=(AllowPrivateAccess = "true"))
-	float MaxDamage;
+	float PerfectDamage = 10;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Damage, meta=(AllowPrivateAccess = "true"))
-	float MaxDamageReduced;
+	float DamageReduced = 8;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Time, meta=(AllowPrivateAccess = "true"))
-	float BaseTimeRanged;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Time, meta=(AllowPrivateAccess = "true"))
-	float TimeDelta;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Property, meta=(AllowPrivateAccess = "true"))
-	float Range;
+	float MinChargeTime = 0.8f;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Time, meta=(AllowPrivateAccess = "true"))
+	float PerfectChargeTime = 1.f;
+	
+	UPROPERTY(BlueprintReadOnly, Category = Time, meta=(AllowPrivateAccess = "true"))
+	float CurrentChargeTime;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Property, meta=(AllowPrivateAccess = "true"))
 	TSubclassOf<ABullet> BulletClass;
 	
-	float CurrentTimeRanged;
-	bool bIsHolding;
+	bool bIsAiming;
+	// FTimerHandle CurrentTimeRanged;
 
 public:	
 	// Sets default values for this actor's properties
@@ -49,9 +46,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	void Shoot(AActor* Enemy);
+	void Shoot(const AActor* Enemy, const float BulletRange);
 	
 	void StartShoot();
-
-	void EndShoot();
 };

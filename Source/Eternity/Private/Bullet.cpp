@@ -29,8 +29,11 @@ void ABullet::Tick(float DeltaTime)
 
 }
 
-void ABullet::Init(const AActor* EnemyTarget)
+void ABullet::Init(const AActor* EnemyTarget, const float BulletRange, const float BulletDamage)
 {
-	if (EnemyTarget == nullptr || ProjectileMovementComponent == nullptr) return;
+	if (ProjectileMovementComponent == nullptr) return;
+	SetLifeSpan(BulletRange/ProjectileMovementComponent->MaxSpeed);
+
+	if (EnemyTarget == nullptr) return;
 	ProjectileMovementComponent->HomingTargetComponent = EnemyTarget->GetRootComponent();
 }

@@ -14,6 +14,8 @@ class ETERNITY_API ABullet : public AActor
 
 	UPROPERTY()
 	UProjectileMovementComponent* ProjectileMovementComponent;
+
+	float Damage;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -27,5 +29,5 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void Init(const AActor* EnemyTarget);
+	void Init(const AActor* EnemyTarget, const float BulletRange, const float BulletDamage);
 };
