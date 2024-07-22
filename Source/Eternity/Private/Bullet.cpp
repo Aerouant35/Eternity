@@ -3,26 +3,24 @@
 
 #include "Bullet.h"
 
-// Sets default values
 ABullet::ABullet()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
+	ProjectileMovementComponent->InitialSpeed = BulletSpeed;
+	ProjectileMovementComponent->MaxSpeed = BulletSpeed;
+	ProjectileMovementComponent->ProjectileGravityScale = 0.f;
+	//ProjectileMovementComponent->bSweepCollision = false;
+	ProjectileMovementComponent->bIsHomingProjectile = true;
+	ProjectileMovementComponent->HomingAccelerationMagnitude = BulletHomingSpeed;
 }
 
-// Called when the game starts or when spawned
 void ABullet::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//Get ProjectileMovement component
-	TArray<UProjectileMovementComponent*> ProjectileComponent;
-	GetComponents<UProjectileMovementComponent>(ProjectileComponent);
-	ProjectileMovementComponent = ProjectileComponent[0];
 }
 
-// Called every frame
 void ABullet::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -34,6 +32,8 @@ void ABullet::Init(const AActor* EnemyTarget, const float BulletRange, const flo
 	if (ProjectileMovementComponent == nullptr) return;
 	SetLifeSpan(BulletRange/ProjectileMovementComponent->MaxSpeed);
 
+	BaseDamage = BulletDamage;
+	
 	if (EnemyTarget == nullptr) return;
 	ProjectileMovementComponent->HomingTargetComponent = EnemyTarget->GetRootComponent();
 }

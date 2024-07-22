@@ -46,6 +46,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
+	void SetActive(bool Active);
+	
+	UFUNCTION(BlueprintCallable)
 	void Shoot(const AActor* Enemy, const float BulletRange);
 	
 	void StartShoot();

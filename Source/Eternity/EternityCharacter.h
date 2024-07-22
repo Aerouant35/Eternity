@@ -10,19 +10,29 @@
 #include "Public/RangedWeapon.h"
 #include "EternityCharacter.generated.h"
 
+class UEnhancedInputLocalPlayerSubsystem;
+class USpringArmComponent;
+class UCameraComponent;
+class UInputComponent;
+class UEnhancedInputComponent;
+class UTranscendentFormComponent;
+class UHealthComponent;
+class ARangedWeapon;
+class AMeleeWeapon;
 
 UCLASS(config=Game)
 class AEternityCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USpringArmComponent> CameraBoomComponent;
 
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* Camera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCameraComponent> CameraComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UEnhancedInputLocalPlayerSubsystem> EnhancedInputSubsystem;
 
 #pragma region Input
 	/** MappingContext */
@@ -66,16 +76,13 @@ class AEternityCharacter : public ACharacter
 	float DodgeCooldown = 0.5f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
-	bool bIsShoot;
+	bool bShouldMove;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
-	bool bShouldMove;
+	bool bIsShoot;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
 	TArray<AActor*> ChildActors;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
-	TSubclassOf<AActor> EnemyClass;
 #pragma endregion 
 
 #pragma region AimAssistParam
@@ -84,63 +91,72 @@ class AEternityCharacter : public ACharacter
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AimAssistParameter, meta=(AllowPrivateAccess = "true"))
 	float DeltaEndBox = 1000.f; // Need to be the end of the range of the ranged weapon
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AimAssistParameter, meta=(AllowPrivateAccess = "true"))
 	FVector BoxSize = FVector(0, 100, 100);
 #pragma endregion
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon, meta=(AllowPrivateAccess = "true"))
-	AMeleeWeapon* MeleeWeapon;
-
-	UPROPERTY(BlueprintReadOnly, Category = Weapon, meta=(AllowPrivateAccess = "true"))
-	ARangedWeapon* RangedWeapon;
-
-	UPROPERTY()
-	APlayerController* PlayerController;
 	
 	FTimerHandle DodgeTimerHandle;
 
 public:
-	AEternityCharacter();
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
+	TObjectPtr<UTranscendentFormComponent> TranscendentFormComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
+	TObjectPtr<UHealthComponent> HealthComponent;
 
 	UPROPERTY(BlueprintReadOnly, Category = Weapon)
-	AActor* ClosestEnemy = nullptr;
+	FVector WeaponSocketLocation;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
+	TObjectPtr<AMeleeWeapon> MeleeWeapon;
 
-protected:
-	void AimAssist();
-	
-	void AimMouse(const FInputActionValue& Value);
-	
-	void AimGamepad(const FInputActionValue& Value);
-	
-	void Move(const FInputActionValue& Value);
-	
-	void Dodge(const FInputActionValue& Value);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
+	TObjectPtr<ARangedWeapon> RangedWeapon;
 
-	void Melee(const FInputActionValue& Value);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Parameter, meta=(AllowPrivateAccess = "true"))
+	TSubclassOf<AActor> EnemyClass;
 
-	void RangedStart(const FInputActionValue& Value);
+	UPROPERTY(BlueprintReadOnly, Category = Parameter)
+	TObjectPtr<AActor> ClosestEnemy = nullptr;
+
+	AEternityCharacter();
+
+	UFUNCTION(BlueprintCallable)
+	APlayerController* GetPlayerController() const;
+
+	UFUNCTION(BlueprintCallable)
+	void EnableEnhancedInput(const bool Enable) const;
 	
-	void RangedEnd(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+	FVector GetWeaponSocketLocation() const	{ return GetMesh()->GetSocketLocation("Weapon"); }
 
-	void Power(const FInputActionValue& Value);
-
-	FVector2D GetMousePosition() const;
-	
 protected:
 	virtual void PossessedBy(AController* NewController) override;
-
-	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	// To add mapping context
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	
 	virtual void BeginPlay() override;
-
 	virtual void Tick(float DeltaSeconds) override;
+
+	void AimMouse(const FInputActionValue& Value);
+	void AimGamepad(const FInputActionValue& Value);
+	void Move(const FInputActionValue& Value);
+	void Dodge(const FInputActionValue& Value);
+	void Melee(const FInputActionValue& Value);
+	void RangedStart(const FInputActionValue& Value);
+	void RangedEnd(const FInputActionValue& Value);
+	void Power(const FInputActionValue& Value);
+	
+	void AimAssist();
+	
+	FVector2D GetMousePosition() const;
 
 public:
 	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoomComponent; }
 	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return Camera; }
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return CameraComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetWeaponsActive(bool Active);
 };

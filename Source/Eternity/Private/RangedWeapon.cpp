@@ -32,6 +32,13 @@ void ARangedWeapon::Tick(float DeltaTime)
 	}
 }
 
+void ARangedWeapon::SetActive(const bool Active)
+{
+	SetActorTickEnabled(Active);
+	SetActorEnableCollision(Active);
+	SetActorHiddenInGame(!Active);
+}
+
 void ARangedWeapon::Shoot(const AActor* Enemy, const float BulletRange)
 {
 	bIsAiming = false;
